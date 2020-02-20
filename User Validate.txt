@@ -1,0 +1,525 @@
+//First html page 
+//UserValidate Page
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="ISO-8859-1">
+	<title>Registration</title>
+</head>
+<body>
+	<form action="UserValidate" method="post">
+	<table align="center"><th>User Registration</th>
+	<tr><td>UserName:</td><td><input type="text" name="uname"></td></tr>
+	<tr><td>Password:</td><td><input type="password" name="pass"></td></tr>
+    <tr><td><input type="submit" value="SignIn">&nbsp<input type="reset" value="Reset"></td></tr>
+	</table>
+	</form>
+
+</body>
+</html>
+
+
+//USER VALIDATE SERVLET PAGE
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+
+public class UserValidate extends HttpServlet
+{
+
+	 
+	 boolean x=false;
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException 
+	{
+		//HttpSession ss=request.getSession();
+		response.setContentType("text/html");
+		PrintWriter pw=response.getWriter();
+		String username=request.getParameter("uname");
+		String password=request.getParameter("pass");
+		//ss.setAttribute("EmployeeName", username);
+		//ss.setAttribute("EmpPassword", password);
+		ServletContext context= getServletContext();
+	
+
+		Connection con=null;
+		try
+		{
+			Class.forName("com.mysql.jdbc.Driver");
+			con=DriverManager.getConnection("jdbc:mysql://localhost:3306/karishma","root","root");
+			System.out.println("Connected");
+
+			PreparedStatement ps;
+			ps=con.prepareStatement("select * from Employee");
+			ResultSet rs=ps.executeQuery();
+
+			while(rs.next())
+			{
+
+				if(rs.getString("Username").equals(username) && rs.getString("Password").equals(password))
+					x=true;
+			}
+		}
+		catch(ClassNotFoundException | SQLException se)
+		{
+			System.out.println(se);
+		}
+
+		if(x==true)
+			//pw.println("Yes");
+		{
+			
+			RequestDispatcher rd=context.getRequestDispatcher("/Modify.html");
+			//RequestDispatcher rd1=context.getRequestDispatcher("/ValidateJava");
+			rd.forward(request,response);
+		}
+
+		else
+			pw.println("Entered Username and Password is INCORRECT.");
+
+	}
+	
+}
+
+
+//MODIFY HTML PAGE(AA,VIEW,MODIFY,DELETE)
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+	<title>Modify Data</title>
+</head>
+<body>
+	<form action="Modify" method="post">
+	<button name=add value=add>ADD</button>
+	<button name=view value=view>VIEW</button>
+	<button name=modify value=modify>MODIFY</button>
+	<button name=delete value=delete>DELETE</button>
+	</form>
+</body>
+</html>
+
+//MODIFY SERVLET PAGE
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+
+@WebServlet("/Modify")
+public class Modify extends HttpServlet 
+{
+	static int eage,eno,empno;
+	static String ename;
+	static float esal;
+	int x=0;
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+	{
+		HttpSession ss=request.getSession();
+		ServletContext context= getServletContext();
+		response.setContentType("text/html");
+		PrintWriter pw=response.getWriter();
+		empno= (int)ss.getAttribute("EmpNum");
+		String view1=request.getParameter("view");
+		String add1=request.getParameter("add");
+		String modify1=request.getParameter("modify");
+		String delete1=request.getParameter("delete");
+		if(view1!=null)
+			x=1;
+		else if(modify1!=null)
+			x=2;
+		else if(delete1!=null)
+			x=3;
+		else if(add1!=null)
+			x=4;
+		
+		
+		if(x==1)
+		{
+			RequestDispatcher rd=context.getRequestDispatcher("/ViewData.html");
+			rd.forward(request,response);
+		}
+		
+		if(x==2)
+		{
+			RequestDispatcher rd=context.getRequestDispatcher("/ModifyData.html");
+			rd.forward(request,response);
+		}
+		if(x==3)
+		{
+			RequestDispatcher rd=context.getRequestDispatcher("/DeleteData.html");
+			rd.forward(request,response);
+		}
+		if(x==4)
+		{
+			RequestDispatcher rd=context.getRequestDispatcher("/Add.html");
+			rd.forward(request,response);
+		}
+		
+	}
+
+	
+
+}
+
+
+//ADD HTML PAGE
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+	<form action="AddJava" method="post">
+	<table align="center"><th>Employee Details</th>
+	<tr><td>Employee Number:</td><td><input type="number" name="eno"></td></tr>
+	<tr><td>Employee Name:</td><td><input type="text" name="ename"></td></tr>
+	<tr><td>Salary:</td><td><input type="number" name="sal"></td></tr>
+	<tr><td>Age:</td><td><input type="number" name="eage"></td></tr>
+    <tr><td><input type="submit" value="SignIn">&nbsp<input type="reset" value="Reset"></td></tr>
+	</table>
+	</form>
+</body>
+</html>
+
+//ADD SERVLET PAGE
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+
+@WebServlet("/AddJava")
+public class AddJava extends HttpServlet 
+{
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+	{
+		
+		ServletContext context= getServletContext();
+		response.setContentType("text/html");
+		PrintWriter pw=response.getWriter();
+		String empno1=request.getParameter("eno");
+		int empno=Integer.parseInt(empno1);
+		
+		String empname=request.getParameter("ename");
+		String empsal1=request.getParameter("sal");
+		float empsal=Float.parseFloat(empsal1);
+		String empage1=request.getParameter("eage");
+		int empage=Integer.parseInt(empage1);
+		//String empName=(String)ss.getAttribute("EmployeeName");
+		//String sql="update EmployeeDetails set eno=? where Username="+empName;
+
+
+		Connection con=null;
+		try
+		{
+			Class.forName("com.mysql.jdbc.Driver");
+			con=DriverManager.getConnection("jdbc:mysql://localhost:3306/karishma","root","root");
+			System.out.println("Connected");
+
+			PreparedStatement ps;
+			ps=con.prepareStatement("insert into EmployeeData values(?,?,?,?)");
+			ps.setInt(1,empno);
+			ps.setString(2,empname);
+			ps.setFloat(3,empsal);
+			ps.setInt(4,empage);
+			
+			ps.executeUpdate();
+			ps.close();
+
+		}
+		catch(ClassNotFoundException | SQLException se)
+		{
+			System.out.println(se);
+		}
+	pw.println("Data Added Successfully");
+
+	}
+
+
+}
+
+
+//VIEW HTML PAGE
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+	<form action="ViewData" method="post">
+	<table align="center"><th>Enter the Employee Number</th>
+	<tr><td>Employee Number:</td><td><input type="number" name="eno"></td></tr>
+	</table>
+	</form>
+</body>
+</html>
+
+//VIEW SERVLET PAGE
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/ViewData")
+public class ViewData extends HttpServlet
+{
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+	{
+		
+		ServletContext context= getServletContext();
+		response.setContentType("text/html");
+		PrintWriter pw=response.getWriter();
+		String empno1=request.getParameter("eno");
+		int empno=Integer.parseInt(empno1);
+		
+		try
+		{
+			Connection con=null;
+			Class.forName("com.mysql.jdbc.Driver");
+			con=DriverManager.getConnection("jdbc:mysql://localhost:3306/karishma","root","root");
+			System.out.println("Connected");
+
+			PreparedStatement ps;
+			String sql="select * from EmployeeData where eno="+empno;
+			ps=con.prepareStatement(sql);
+			ResultSet rs=ps.executeQuery();
+			
+			while(rs.next())
+			{
+				pw.println("<h1> Employee Data:</h1><br>");
+				pw.println("Employee Number="+rs.getInt("eno")+"<br>");
+				pw.println("Employee Name="+rs.getString("ename")+"<br>");
+				pw.println("Employee Salary="+rs.getFloat("esal")+"<br>");
+				pw.println("Employee Age="+rs.getInt("eage")+"<br>");
+		
+			}	
+			ps.close();
+
+		}
+		catch(ClassNotFoundException | SQLException se)
+		{
+			System.out.println(se);
+		}	
+	}
+
+}
+
+
+//MODIFYDATA HTML PAGE
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Modify</title>
+</head>
+<body>
+	<form action="ModifyData" method="post">
+	<table align="center"><th>Enter the Employee Details to Be Modified</th>
+	<tr><td>Employee Number:</td><td><input type="number" name="eno"></td></tr>
+	<tr><td>Employee Name:</td><td><input type="text" name="ename"></td></tr>
+	<tr><td>Salary:</td><td><input type="number" name="sal"></td></tr>
+	<tr><td>Age:</td><td><input type="number" name="eage"></td></tr>
+    <tr><td><input type="submit" value="SignIn">&nbsp<input type="reset" value="Reset"></td></tr>
+	</table>
+</body>
+</html>
+
+//MODIFYDATA SERVLET PAGE
+
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+
+@WebServlet("/ModifyData")
+public class ModifyData extends HttpServlet
+{
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+	{
+		ServletContext context= getServletContext();
+		response.setContentType("text/html");
+		PrintWriter pw=response.getWriter();
+		String empno1=request.getParameter("eno");
+		int empno=Integer.parseInt(empno1);
+		String empname=request.getParameter("ename");
+		String empsal1=request.getParameter("sal");
+		float empsal=Float.parseFloat(empsal1);
+		String empage1=request.getParameter("eage");
+		int empage=Integer.parseInt(empage1);
+		String sql="update EmployeeData set ename=?,esal=?,eage=? where eno="+empno;
+		Connection con=null;
+		try
+		{
+			Class.forName("com.mysql.jdbc.Driver");
+			con=DriverManager.getConnection("jdbc:mysql://localhost:3306/karishma","root","root");
+			System.out.println("Connected");
+
+			PreparedStatement ps;
+			ps=con.prepareStatement(sql);
+			
+			ps.setString(1,empname);
+			ps.setFloat(2,empsal);
+			ps.setInt(3,empage);
+			
+			ps.executeUpdate();
+			ps.close();
+
+		}
+		catch(ClassNotFoundException | SQLException se)
+		{
+			System.out.println(se);
+		}
+		pw.println("Data Modified Successfully");
+
+	}
+
+}
+
+
+//DELETEDATA HTML PAGE
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+	<form action="DeleteData" method="post">
+	<table align="center"><th>Enter the Employee Number</th>
+	<tr><td>Employee Number:</td><td><input type="number" name="eno"></td></tr>
+	</table>
+	</form>
+
+</body>
+</html>
+
+//DELETEDATA SERVLET PAGE
+
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+
+@WebServlet("/DeleteData")
+public class DeleteData extends HttpServlet
+{
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+	{
+
+		ServletContext context= getServletContext();
+		response.setContentType("text/html");
+		PrintWriter pw=response.getWriter();
+		String empno1=request.getParameter("eno");
+		int empno=Integer.parseInt(empno1);
+		
+		try
+		{
+			Connection con=null;
+			Class.forName("com.mysql.jdbc.Driver");
+			con=DriverManager.getConnection("jdbc:mysql://localhost:3306/karishma","root","root");
+			System.out.println("Connected");
+
+			PreparedStatement ps;
+			String sql="delete from EmployeeData where eno="+empno;
+			ps=con.prepareStatement(sql);
+			ps.executeUpdate();
+			
+			
+			ps.close();
+
+		}
+		catch(ClassNotFoundException | SQLException se)
+		{
+			System.out.println(se);
+		}	
+		pw.println("Data Deleted Successfully");
+	}
+
+}
